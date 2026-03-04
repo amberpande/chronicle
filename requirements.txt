@@ -2,10 +2,7 @@
 # Install with: pip install -r requirements.txt
 
 # Core
-pydantic>=2.0
-pyyaml>=6.0
-numpy>=1.24
-python-dotenv>=1.0
+snowmemory>=0.1.0
 
 # API server
 fastapi>=0.100

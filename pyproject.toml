@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chronicle"
+version = "0.1.0"
+description = "Chronicle — AI agent memory system powered by SnowMemory"
+requires-python = ">=3.10"
+
+dependencies = [
+    "snowmemory>=0.1.0",
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.23",
+    "python-multipart>=0.0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["snowmemory*", "venv*"]
