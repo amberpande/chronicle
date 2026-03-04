@@ -1,0 +1,17 @@
+{
+  "name": "chronicle",
+  "version": "1.0.0",
+  "description": "Your second brain, but with actual memory",
+  "scripts": {
+    "dev": "concurrently --names \"API,WEB\" --prefix-colors \"blue,green\" \"npm run api\" \"npm run web\"",
+    "api": "cd backend && uvicorn main:app --reload --port 8000",
+    "web": "cd frontend && npm run dev",
+    "test": "python3 ../scripts/test_memory.py",
+    "test:api": "python3 scripts/test_chronicle.py",
+    "setup:frontend": "cd frontend && npm install",
+    "install:all": "npm install && npm run setup:frontend"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

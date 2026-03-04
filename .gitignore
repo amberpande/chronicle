@@ -1,0 +1,39 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Environment files — never commit these
+.env
+.env.local
+.env.production
+chronicle/.env
+chronicle/frontend/.env.local
+
+# Database files
+*.db
+*.duckdb
+data/
+
+# Mac
+.DS_Store
+.AppleDouble
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

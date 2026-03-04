@@ -1,0 +1,23 @@
+# Chronicle + SnowMemory — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Core
+pydantic>=2.0
+pyyaml>=6.0
+numpy>=1.24
+python-dotenv>=1.0
+
+# API server
+fastapi>=0.100
+uvicorn[standard]>=0.23
+python-multipart>=0.0.6
+
+# Optional — better embeddings (recommended, ~80MB download)
+# Uncomment the line below for better search quality:
+# sentence-transformers>=2.2
+
+# Optional — Snowflake backend (enterprise tier)
+# snowflake-connector-python>=3.0
+
+# Optional — PDF ingestion support
+# pdfplumber>=0.10

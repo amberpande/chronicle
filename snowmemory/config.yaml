@@ -1,0 +1,105 @@
+# SnowMemory Default Configuration
+# Copy this file and modify for your environment.
+# All ${VAR} values are substituted from environment variables.
+
+agent_id: "my_agent"
+description: "My AI agent memory store"
+
+# ── Memory Tiers ─────────────────────────────────────────
+working:
+  enabled: true
+  ttl_seconds: 7200        # 2 hours
+  max_entries: 1000
+  backend: in_memory       # in_memory | redis
+
+experiential:
+  enabled: true
+  ttl_days: 90
+  backend: in_memory       # in_memory | snowflake
+
+factual:
+  enabled: true
+  versioned: true
+  backend: in_memory       # in_memory | snowflake
+
+# ── Salience Engine (Compound CSS) ───────────────────────
+salience:
+  write_threshold: 0.35    # minimum score to write
+  max_threshold: 0.75      # adaptive ceiling
+  min_threshold: 0.10      # adaptive floor
+  k_neighbors: 5
+
+  # CSS component weights (must sum to ~1.0)
+  novelty_weight: 0.35
+  temporal_gap_weight: 0.20
+  orphan_score_weight: 0.20
+  access_inv_weight: 0.10
+  momentum_weight: 0.15
+
+  # Adaptive threshold
+  adaptive_threshold: true
+  adjustment_rate: 0.05
+  low_utility_cutoff: 0.10
+  gap_tolerance: 0.30
+
+  # Domain normalization
+  domain_normalization: true
+
+# ── Decay & Resurrection ──────────────────────────────────
+decay:
+  strategy: exponential    # exponential | linear | step
+  half_life_days: 30
+  min_weight: 0.05
+
+  resurrection_enabled: true
+  resurrection_eligibility: 0.30   # below this → eligible
+  resurrection_window_hours: 48
+  resurrection_confirmation_count: 2
+  resurrection_boost: 0.25
+  max_resurrection_weight: 0.70
+
+# ── Graph Memory ──────────────────────────────────────────
+graph:
+  enabled: true
+  extraction_mode: rule_based    # rule_based | llm
+  llm_model: claude-haiku-4-5-20251001
+  max_depth: 2
+  min_confidence: 0.60
+
+# ── Embedder ──────────────────────────────────────────────
+embedder:
+  mode: simple             # simple | openai
+  dimension: 384
+
+# ── Classifier ────────────────────────────────────────────
+classifier:
+  mode: rule_based
+
+# ── Cross-Agent Inheritance ───────────────────────────────
+inheritance:
+  enabled: true
+  default_decay: 0.80
+  min_salience: 0.40
+  contradiction_check: true
+
+# ── Audit & Compliance ────────────────────────────────────
+audit:
+  enabled: true
+  log_reads: false
+  backend: in_memory       # in_memory | file | snowflake
+  log_file: snowmemory_audit.jsonl
+
+# ── Backend Configs ───────────────────────────────────────
+backends:
+  snowflake:
+    account: "${SNOWFLAKE_ACCOUNT}"
+    user: "${SNOWFLAKE_USER}"
+    password: "${SNOWFLAKE_PASSWORD}"
+    warehouse: "MEMORY_WH"
+    database: "SNOWMEMORY_DB"
+    schema_name: "AGENT_MEMORY"
+    role: ""
+
+  redis:
+    url: "${REDIS_URL}"
+    ttl_seconds: 7200

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "snowmemory"
+version = "0.1.0"
+description = "Hybrid AI Agent Memory System: Titans-inspired salience + Mem0 graph + three-tier taxonomy"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+
+dependencies = [
+    "numpy>=1.24",
+    "pydantic>=2.0",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+cli = [
+    "typer>=0.9",
+    "rich>=13.0",
+]
+snowflake = [
+    "snowflake-connector-python>=3.0",
+]
+openai = [
+    "openai>=1.0",
+]
+llm-extraction = [
+    "anthropic>=0.25",
+]
+all = [
+    "typer>=0.9",
+    "rich>=13.0",
+    "snowflake-connector-python>=3.0",
+    "openai>=1.0",
+    "anthropic>=0.25",
+]
+
+[project.scripts]
+snowmemory = "snowmemory.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["snowmemory*"]
