@@ -55,8 +55,10 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        run: railway up --service chronicle-backend --detach
-        working-directory: chronicle/backend
+        # RAILWAY_TOKEN must be a project token (not account token).
+        # Generate one at: railway.app → your project → Settings → Tokens
+        # RAILWAY_SERVICE_ID: railway.app → your project → your service → Settings → Service ID
+        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }} --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
