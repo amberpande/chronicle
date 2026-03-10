@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "fix/**", "feat/**", "chore/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Backend ──────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend (Python)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt ruff
+
+      - name: Lint (ruff)
+        run: ruff check chronicle/backend/
+
+      - name: Type-check imports (syntax validation)
+        run: python -c "import ast, sys, pathlib; [ast.parse(p.read_text()) for p in pathlib.Path('chronicle/backend').rglob('*.py')]; print('OK')"
+
+      - name: Run tests
+        run: |
+          if find . -name "test_*.py" -not -path "*/scripts/*" | grep -q .; then
+            pip install pytest
+            pytest --tb=short
+          else
+            echo "No pytest tests found — skipping"
+          fi
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: chronicle/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: chronicle/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
