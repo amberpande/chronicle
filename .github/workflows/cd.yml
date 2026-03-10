@@ -41,9 +41,9 @@ jobs:
           echo "url=$url" >> $GITHUB_OUTPUT
         working-directory: chronicle/frontend
 
-  # ── Deploy Backend to Railway ─────────────────────────────────────────────
+  # ── Deploy Backend to Fly.io (free tier + persistent volume for DuckDB) ───
   deploy-backend:
-    name: Deploy Backend (Railway)
+    name: Deploy Backend (Fly.io)
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -51,16 +51,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
+      - name: Deploy to Fly.io
+        uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Deploy to Railway
-        # RAILWAY_TOKEN must be a project token (not account token).
-        # Generate one at: railway.app → your project → Settings → Tokens
-        # RAILWAY_SERVICE_ID: railway.app → your project → your service → Settings → Service ID
-        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }} --detach
+      - name: fly deploy
+        run: flyctl deploy --remote-only
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
   # ── Post-deploy smoke test ────────────────────────────────────────────────
   smoke-test:

@@ -16,9 +16,13 @@ from snowmemory import MemoryOrchestrator, MemoryConfig, MemoryEvent, QueryConte
 
 app = FastAPI(title="Chronicle API", version="1.0.0")
 
+_ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:3001"]
+if os.getenv("FRONTEND_URL"):
+    _ALLOWED_ORIGINS.append(os.environ["FRONTEND_URL"])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,15 +34,18 @@ MAX_USERS = 100
 _orchestrators: dict = {}
 _orchestrator_access_order: list = []
 
+_DUCKDB_PATH = os.getenv("DUCKDB_PATH")  # e.g. /data/chronicle.db on Fly.io
+
 def get_memory(user_id: str) -> MemoryOrchestrator:
     if user_id not in _orchestrators:
         if len(_orchestrators) >= MAX_USERS:
             # Evict the least recently used entry
             oldest = _orchestrator_access_order.pop(0)
             del _orchestrators[oldest]
-        _orchestrators[user_id] = MemoryOrchestrator(
-            MemoryConfig(agent_id=user_id)
-        )
+        config = MemoryConfig(agent_id=user_id)
+        if _DUCKDB_PATH:
+            config.storage_path = _DUCKDB_PATH
+        _orchestrators[user_id] = MemoryOrchestrator(config)
         _orchestrator_access_order.append(user_id)
     else:
         # Move to end (most recently used)
