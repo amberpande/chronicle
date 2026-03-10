@@ -2,14 +2,15 @@
 Chronicle Backend — FastAPI wrapper around SnowMemory
 Run: uvicorn main:app --reload --port 8000
 """
-import sys, os
+import os
+import sys
+from collections import Counter
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-import os
 
 from snowmemory import MemoryOrchestrator, MemoryConfig, MemoryEvent, QueryContext
 
@@ -17,20 +18,32 @@ app = FastAPI(title="Chronicle API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "*"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # In-memory store of orchestrators per user (persisted via DuckDB in prod)
+# Limited to MAX_USERS to prevent unbounded memory growth
+MAX_USERS = 100
 _orchestrators: dict = {}
+_orchestrator_access_order: list = []
 
 def get_memory(user_id: str) -> MemoryOrchestrator:
     if user_id not in _orchestrators:
+        if len(_orchestrators) >= MAX_USERS:
+            # Evict the least recently used entry
+            oldest = _orchestrator_access_order.pop(0)
+            del _orchestrators[oldest]
         _orchestrators[user_id] = MemoryOrchestrator(
             MemoryConfig(agent_id=user_id)
         )
+        _orchestrator_access_order.append(user_id)
+    else:
+        # Move to end (most recently used)
+        _orchestrator_access_order.remove(user_id)
+        _orchestrator_access_order.append(user_id)
     return _orchestrators[user_id]
 
 
@@ -100,8 +113,10 @@ async def ingest_file(user_id: str, file: UploadFile = File(...)):
                     page.extract_text() or "" for page in pdf.pages
                 )
         except ImportError:
-            # Fallback: treat as text
-            content = content_bytes.decode("utf-8", errors="ignore")
+            raise HTTPException(
+                status_code=500,
+                detail="PDF extraction requires pdfplumber. Run: pip install pdfplumber"
+            )
     else:
         content = content_bytes.decode("utf-8", errors="ignore")
 
@@ -171,7 +186,6 @@ def stats(user_id: str):
     memory   = get_memory(user_id)
     all_mems = memory._backend.get_all(user_id)
     
-    from collections import Counter
     type_counts   = Counter(m.memory_type.value  for m in all_mems)
     domain_counts = Counter(m.domain             for m in all_mems)
     
